@@ -21,7 +21,7 @@ function (d3, topojson) {
 //---------------------------------------------------
 
   var vg = {
-    version:  "1.4.4", // semantic versioning
+    version:  "1.4.4.1", // semantic versioning
     d3:       d3,      // stash d3 for use in property functions
     topojson: topojson // stash topojson similarly
   };
@@ -3502,21 +3502,24 @@ vg.data.facet = function() {
 };
 
 vg.data.force.dependencies = ["links"];vg.data.formula = (function() {
-  
   return function() {
     var field = null,
-        expr = vg.identity;
-  
+        expr = vg.identity,
+        setter;
+
     var formula = vg.data.mapper(function(d, i, list) {
-      if (field) d[field] = expr.call(null, d, i, list);
+      if (field) {
+        setter(d, expr.call(null, d, i, list));
+      }
       return d;
     });
 
     formula.field = function(name) {
       field = name;
+      setter = vg.mutator(field);
       return formula;
     };
-  
+
     formula.expr = function(func) {
       expr = vg.isFunction(func) ? func : vg.parse.expr(func);
       return formula;
@@ -4560,6 +4563,7 @@ vg.parse.data = function(spec, callback) {
   	"cos":    "Math.cos",
   	"exp":    "Math.exp",
   	"floor":  "Math.floor",
+    "format": "d3.format",
   	"log":    "Math.log",
   	"max":    "Math.max",
   	"min":    "Math.min",
